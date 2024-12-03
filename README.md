@@ -22,12 +22,12 @@ Technologies Used:
 2. Tableau Dashboard  
    - Created an interactive dashboard that displays statistics by location and time frame.  
    - Provides insights into case distributions and historical trends.  
-   - [Tableau Dashboard](https://public.tableau.com/app/proﬁle/sisay.beyene.juja/viz/Coviddashboard_16763898076650/Dashboard1?publish=yes)  
+   - Tableau Dashboard(https://public.tableau.com/app/profile/sisay.beyene.juja/viz/Coviddashboard_16763898076650/Dashboard1?publish=yes)  
 
 ## Insights  
 - Analyzed global and regional trends in COVID-19 cases.  
 - Identified key timeframes and locations with significant case surges.  
 - Delivered actionable visualizations to better understand the pandemic's progression.  
 
- **Tableau Dashboard**: Explore the visualizations on [Tableau Public](https://public.tableau.com/app/proﬁle/sisay.beyene.juja/viz/Coviddashboard_16763898076650/Dashboard1?publish=yes).  
+
 
