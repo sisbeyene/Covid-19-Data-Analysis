@@ -1,137 +1,221 @@
-select *
-from CovidDeaths
-order by 3
+/*
+    COVID-19 Global Data Analysis
+    --------------------------------
+    Exploratory SQL analysis of cases, deaths, population, and vaccinations.
 
-select *
-from Covid_vacine
-order by 3
+    Main techniques demonstrated:
+      - filtering and aggregation
+      - joins
+      - window functions
+      - CTEs
+      - temporary tables
+      - views for visualization
 
-select location,date, total_cases,new_cases,total_deaths,population
-from CovidDeaths
-order by 1
+    Note: table names below reflect the names used in the original SQL Server project.
+*/
 
---total death per total cases in percentage
---for countries who recorded more than 1million cases, the highest death percentage ratio is about 11.12270-- which is recorded in European Union with 0.8278-- being lowest recorded in turkey
+-- 1. Core case/death fields
+SELECT
+    location,
+    date,
+    total_cases,
+    new_cases,
+    total_deaths,
+    population
+FROM CovidDeaths
+ORDER BY location, date;
 
-select location,date, total_cases,total_deaths, (total_deaths/total_cases)*100 as death_rate
-from CovidDeaths
-where total_cases>'1000000'
-order by death_rate desc
 
---total cases per total population
---shows the percentage of people affected in covid-19
---maximum percentage being 17.12+ in Andorra recorded on 2021-04-30
+-- 2. Case fatality percentage by location and date
+SELECT
+    location,
+    date,
+    total_cases,
+    total_deaths,
+    (CAST(total_deaths AS float) / NULLIF(total_cases, 0)) * 100 AS case_fatality_pct
+FROM CovidDeaths
+WHERE total_cases >= 1000000
+ORDER BY case_fatality_pct DESC;
 
-select location,date, total_cases,population, (total_cases/population)*100 as affection_rate
-from CovidDeaths
-order by affection_rate desc
 
- --showing maximum percentage of cases grouping by location and population
+-- 3. Share of population with recorded cases
+SELECT
+    location,
+    date,
+    total_cases,
+    population,
+    (CAST(total_cases AS float) / NULLIF(population, 0)) * 100 AS population_infected_pct
+FROM CovidDeaths
+WHERE continent IS NOT NULL
+ORDER BY population_infected_pct DESC;
 
- select location,population, max(total_cases) as maximum, max((total_cases/population)*100) as affection_rate
-from CovidDeaths
-where continent is not null
-group by location,population 
-order by affection_rate desc
 
---highest death percentage per population
+-- 4. Highest recorded infection percentage by location
+SELECT
+    location,
+    population,
+    MAX(total_cases) AS highest_recorded_cases,
+    MAX((CAST(total_cases AS float) / NULLIF(population, 0)) * 100) AS highest_infected_pct
+FROM CovidDeaths
+WHERE continent IS NOT NULL
+GROUP BY location, population
+ORDER BY highest_infected_pct DESC;
 
-select location,max(cast(total_deaths as int)) as maximum_deaths,population, max(total_deaths/population) as population_death_ratio
-from CovidDeaths
-where continent is not null
-group by location,population
-order by population_death_ratio desc
 
---maximum deaths per continent
+-- 5. Highest recorded deaths and deaths as a share of population
+SELECT
+    location,
+    population,
+    MAX(CAST(total_deaths AS int)) AS highest_recorded_deaths,
+    MAX((CAST(total_deaths AS float) / NULLIF(population, 0)) * 100) AS population_death_pct
+FROM CovidDeaths
+WHERE continent IS NOT NULL
+GROUP BY location, population
+ORDER BY population_death_pct DESC;
 
-select location,max(cast(total_deaths as int)) as maximum_deaths
-from CovidDeaths
-where continent is null
-group by location
-order by maximum_deaths desc
 
---total deaths per conitnents
+-- 6. Aggregate rows such as continents / world regions in the source data
+SELECT
+    location,
+    MAX(CAST(total_deaths AS int)) AS highest_recorded_deaths
+FROM CovidDeaths
+WHERE continent IS NULL
+GROUP BY location
+ORDER BY highest_recorded_deaths DESC;
 
-select location,sum(cast(total_deaths as int)) as total_deaths
-from CovidDeaths
-where continent is null
-group by location
-order by total_deaths desc
 
---global numbers
---sum of new cases per day
---sum of new deaths per day
---percentage death per new cases per day
+-- 7. Global daily cases, deaths, and case fatality percentage
+SELECT
+    date,
+    SUM(new_cases) AS new_cases,
+    SUM(CAST(new_deaths AS int)) AS new_deaths,
+    (CAST(SUM(CAST(new_deaths AS int)) AS float) / NULLIF(SUM(new_cases), 0)) * 100
+        AS daily_case_fatality_pct
+FROM CovidDeaths
+WHERE continent IS NOT NULL
+GROUP BY date
+ORDER BY date;
 
-select date,sum(new_cases) as total_new_cases,sum(cast(new_deaths as int)) as total_new_deaths,(sum(cast(new_deaths as int))/sum(new_cases))*100 as percentage_death
-from CovidDeaths
-where continent is not null
-group by date
-order by total_new_cases desc
 
---total new cases
---total new deaths and percentage death per cases
+-- 8. Global totals across the observation period
+SELECT
+    SUM(new_cases) AS total_cases,
+    SUM(CAST(new_deaths AS int)) AS total_deaths,
+    (CAST(SUM(CAST(new_deaths AS int)) AS float) / NULLIF(SUM(new_cases), 0)) * 100
+        AS overall_case_fatality_pct
+FROM CovidDeaths
+WHERE continent IS NOT NULL;
 
-select sum(new_cases) as total_new_cases,sum(cast(new_deaths as int)) as total_new_deaths,(sum(cast(new_deaths as int))/sum(new_cases))*100 as percentage_death
-from CovidDeaths
-where continent is not null
-order by total_new_cases desc
 
---looking at total number of vacinations  
+-- 9. Join deaths/cases data to vaccination data
+SELECT
+    dea.date,
+    dea.location,
+    dea.population,
+    vac.new_vaccinations
+FROM CovidDeaths AS dea
+INNER JOIN covidvaccine AS vac
+    ON dea.location = vac.location
+   AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL
+ORDER BY dea.location, dea.date;
 
-select dea.date,dea.population,dea.location,vac.new_vaccinations
-from CovidDeaths dea
-join covidvaccine vac
-on dea.location=vac.location and dea.date=vac.date
 
---looking at total number of vacinations partition by location 
+-- 10. Running vaccination count by location
+SELECT
+    dea.date,
+    dea.location,
+    dea.population,
+    vac.new_vaccinations,
+    SUM(CAST(vac.new_vaccinations AS bigint)) OVER (
+        PARTITION BY dea.location
+        ORDER BY dea.date
+        ROWS UNBOUNDED PRECEDING
+    ) AS rolling_vaccinations
+FROM CovidDeaths AS dea
+INNER JOIN covidvaccine AS vac
+    ON dea.location = vac.location
+   AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL
+ORDER BY dea.location, dea.date;
 
-select dea.date,dea.population,dea.location,vac.new_vaccinations,
-sum(cast(vac.new_vaccinations as int))  over(partition by dea.location) as people_vaccinated
-from CovidDeaths dea
-join covidvaccine vac
-on dea.location=vac.location and dea.date=vac.date
 
---use CTE
---finding people_vaccinated_to_population_ratio from popvsvac
-
-with popvsvac(date,population,location,new_vaccinations,people_vaccinated)
-as(
-select dea.date,dea.population,dea.location,vac.new_vaccinations,
-sum(cast(vac.new_vaccinations as int))  over(partition by dea.location) as people_vaccinated
-from CovidDeaths dea
-join covidvaccine vac
-on dea.location=vac.location and dea.date=vac.date
-where dea.continent is not null
+-- 11. CTE: rolling vaccinations as a percentage of population
+WITH PopulationVsVaccination AS (
+    SELECT
+        dea.date,
+        dea.location,
+        dea.population,
+        vac.new_vaccinations,
+        SUM(CAST(vac.new_vaccinations AS bigint)) OVER (
+            PARTITION BY dea.location
+            ORDER BY dea.date
+            ROWS UNBOUNDED PRECEDING
+        ) AS rolling_vaccinations
+    FROM CovidDeaths AS dea
+    INNER JOIN covidvaccine AS vac
+        ON dea.location = vac.location
+       AND dea.date = vac.date
+    WHERE dea.continent IS NOT NULL
 )
-select *,(people_vaccinated/population) as people_vaccinated_to_population_ratio from popvsvac
+SELECT
+    *,
+    (CAST(rolling_vaccinations AS float) / NULLIF(population, 0)) * 100
+        AS rolling_vaccinations_per_population_pct
+FROM PopulationVsVaccination
+ORDER BY location, date;
 
---use temp table
---peperpor(percentage per population ratio)
 
-drop table if exists #peperpor
-create table #peperpor(date datetime,
-population numeric,
-location nvarchar(255),
-new_vaccinations numeric,
-people_vaccinated numeric)
-insert into #peperpor
-select dea.date,dea.population,dea.location,vac.new_vaccinations,
-sum(cast(vac.new_vaccinations as int))  over(partition by dea.location) as people_vaccinated
-from CovidDeaths dea
-join covidvaccine vac
-on dea.location=vac.location and dea.date=vac.date
-where dea.continent is not null
+-- 12. Temporary table version for downstream exploration
+DROP TABLE IF EXISTS #PopulationVaccination;
 
-select * from #peperpor
+CREATE TABLE #PopulationVaccination (
+    date datetime,
+    population numeric,
+    location nvarchar(255),
+    new_vaccinations numeric,
+    rolling_vaccinations numeric
+);
 
---creating view for later to store data for visualization
+INSERT INTO #PopulationVaccination
+SELECT
+    dea.date,
+    dea.population,
+    dea.location,
+    vac.new_vaccinations,
+    SUM(CAST(vac.new_vaccinations AS bigint)) OVER (
+        PARTITION BY dea.location
+        ORDER BY dea.date
+        ROWS UNBOUNDED PRECEDING
+    )
+FROM CovidDeaths AS dea
+INNER JOIN covidvaccine AS vac
+    ON dea.location = vac.location
+   AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL;
 
-create view peperpor as
-select dea.date,dea.population,dea.location,vac.new_vaccinations,
-sum(cast(vac.new_vaccinations as int))  over(partition by dea.location) as people_vaccinated
-from CovidDeaths dea
-join covidvaccine vac
-on dea.location=vac.location and dea.date=vac.date
-where dea.continent is not null
+SELECT
+    *,
+    (CAST(rolling_vaccinations AS float) / NULLIF(population, 0)) * 100
+        AS rolling_vaccinations_per_population_pct
+FROM #PopulationVaccination
+ORDER BY location, date;
 
+
+-- 13. View for reuse in visualization / dashboard work
+CREATE VIEW PopulationVaccinationProgress AS
+SELECT
+    dea.date,
+    dea.population,
+    dea.location,
+    vac.new_vaccinations,
+    SUM(CAST(vac.new_vaccinations AS bigint)) OVER (
+        PARTITION BY dea.location
+        ORDER BY dea.date
+        ROWS UNBOUNDED PRECEDING
+    ) AS rolling_vaccinations
+FROM CovidDeaths AS dea
+INNER JOIN covidvaccine AS vac
+    ON dea.location = vac.location
+   AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL;
