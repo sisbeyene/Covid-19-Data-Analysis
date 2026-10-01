@@ -1,33 +1,64 @@
-# Tableau and SQL Analysis for COVID-19 Cases  
+# COVID-19 Global Data Analysis
 
-## Overview  
-This project combines the power of SQL for data exploration and Tableau for visualization to analyze and present insights about the COVID-19 pandemic. Using data obtained from Kaggle, I explored trends and patterns in COVID-19 cases and created an interactive Tableau dashboard for a detailed visual representation.
+**SQL • Excel • Tableau**
 
-## Objectives  
-- Perform data cleaning and exploration to uncover critical trends in the dataset.  
-- Use SQL queries to analyze key patterns such as infection rates and regional impacts.  
-- Develop an interactive Tableau dashboard for effective data visualization.  
+An end-to-end data analysis project exploring global COVID-19 cases, deaths, infections, and vaccination patterns. SQL is used for exploration and analytical queries, Excel for data preparation, and Tableau for communicating the results through an interactive dashboard.
 
-## Tools & Technologies  
-Data Sources: Kaggle  
-Technologies Used:  
-  - SQL for data exploration and trend analysis.  
-  - Microsoft Excel for data cleaning and preparation.  
-  - Tableau for creating an interactive dashboard.  
+## Project Goal
 
-## Features  
-1. SQL Data Exploration  
-   - Wrote comprehensive SQL queries to analyze COVID-19 trends.  
-   - Key focus areas included case counts, growth patterns, and geographical insights.  
-2. Tableau Dashboard  
-   - Created an interactive dashboard that displays statistics by location and time frame.  
-   - Provides insights into case distributions and historical trends.  
-   - Tableau Dashboard(https://public.tableau.com/app/profile/sisay.beyene.juja/viz/Coviddashboard_16763898076650/Dashboard1?publish=yes)  
+The goal of this project is to turn raw COVID-19 data into understandable measures and visual trends that make it easier to compare the pandemic's impact across locations and over time.
 
-## Insights  
-- Analyzed global and regional trends in COVID-19 cases.  
-- Identified key timeframes and locations with significant case surges.  
-- Delivered actionable visualizations to better understand the pandemic's progression.  
+## Tools
 
+- **SQL** — data exploration, calculations, aggregation, joins, and trend analysis
+- **Microsoft Excel** — initial data preparation and inspection
+- **Tableau** — interactive visualization and dashboard development
 
+## Analysis Workflow
 
+```text
+Raw COVID-19 data
+        ↓
+Excel preparation
+        ↓
+SQL exploration & analysis
+        ↓
+Aggregated analytical results
+        ↓
+Tableau dashboard
+```
+
+## Analysis Areas
+
+The SQL analysis explores questions around:
+
+- COVID-19 cases and deaths across countries and regions
+- Infection rates relative to population
+- Locations with high case and mortality counts
+- Changes in cases and deaths over time
+- Vaccination progress and population-level vaccination measures
+
+## Tableau Dashboard
+
+The interactive dashboard presents the analysis visually and allows trends to be explored across geography and time.
+
+**[View the interactive Tableau dashboard](https://public.tableau.com/app/profile/sisay.beyene.juja/viz/Coviddashboard_16763898076650/Dashboard1?publish=yes)**
+
+## Skills Demonstrated
+
+- SQL querying and aggregation
+- Data cleaning and preparation
+- Joining related datasets
+- Analytical calculations and percentage measures
+- Time-series exploration
+- Data visualization
+- Dashboard design
+- Communicating analytical results
+
+## Repository Contents
+
+The repository contains the source datasets, SQL analysis, Tableau-related project material, and supporting files used to build the analysis.
+
+## Key Takeaway
+
+This project demonstrates a complete analytics workflow: starting with raw data, exploring and transforming it with SQL, and presenting the resulting patterns through an interactive business-intelligence dashboard.
